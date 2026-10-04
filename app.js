@@ -40,4 +40,15 @@ $('#googleSignIn').addEventListener('click',async()=>{const {error}=await sb.aut
 $('#authForm').addEventListener('submit',async e=>{e.preventDefault();$('#authError').textContent='';const email=$('#authEmail').value.trim(),password=$('#authPassword').value;const {data,error}=await sb.auth.signInWithPassword({email,password});if(error){$('#authError').textContent='Sign-in failed. Check your email and password.';return}currentUser=data.user;if(!await requireApproved(currentUser)){$('#authError').textContent='Your account exists but has not been approved for this workspace.';await sb.auth.signOut();currentUser=null}});
 $('#accountBtn').addEventListener('click',async()=>{if(!currentUser)return;if(confirm('Sign out of the Ministry Command Center?')){await sb.auth.signOut();location.reload()}});
 sb.channel('ministry-records-live').on('postgres_changes',{event:'*',schema:'public',table:'ministry_records'},()=>{if(currentUser)loadShared().catch(console.error)}).subscribe();
-bootAuth().catch(console.error);
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_IN' && session?.user){
+    currentUser=session.user;
+    $('#authMessage').textContent='Google sign-in worked. Checking ministry access…';
+    const ok=await requireApproved(currentUser);
+    if(!ok){
+      $('#authMessage').textContent='Google sign-in worked. Your account is waiting for ministry approval.';
+      $('#authError').textContent='Signed in as '+(currentUser.email||'your Google account')+'. An administrator still needs to approve this account.';
+    }
+  }
+});
+bootAuth().catch(err=>{$('#authError').textContent='Authentication error: '+err.message;console.error(err)});
