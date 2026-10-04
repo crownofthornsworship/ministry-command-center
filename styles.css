@@ -2,3 +2,5 @@
 
 /* Shared workspace authentication */
 .auth-gate{position:fixed;inset:0;z-index:100;background:linear-gradient(145deg,#173b32,#244d3f);display:grid;place-items:center;padding:20px}.auth-gate.hidden{display:none}.auth-card{width:min(430px,100%);background:#fff;border-radius:16px;padding:30px;box-shadow:0 24px 80px #071b1466}.auth-card h1{margin:7px 0 10px;color:#173b32}.auth-card p{line-height:1.5;color:#607d65}.auth-submit{width:100%;justify-content:center}.auth-error{min-height:22px;color:#9b352d!important;font-size:.82rem}.avatar{border:0;cursor:pointer;font:inherit}.syncing{opacity:.7}
+
+.google-button{width:100%;justify-content:center;background:#fff;color:#243b31;border:1px solid #cbd8cf;margin:18px 0 10px}.auth-divider{display:flex;align-items:center;gap:12px;color:#819984;font-size:.75rem;margin:4px 0 14px}.auth-divider:before,.auth-divider:after{content:'';height:1px;background:#dce6df;flex:1}
