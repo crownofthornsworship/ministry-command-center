@@ -1,6 +1,6 @@
 const SUPABASE_URL='https://ivoewxgcjzauutajmssj.supabase.co';
 const SUPABASE_KEY='sb_publishable_LFIxf9xpsJxt9sPUMe_i9A_90mWlOAX';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 let currentUser=null,currentProfile=null;
 const KEY='ministry-command-center-v1';
 const sections={overview:{label:'Overview',icon:'▦'},outreach:{label:'Outreach',icon:'⌖'},people:{label:'People & teams',icon:'♙'},supplies:{label:'Supplies',icon:'▣'},prayer:{label:'Prayer follow-ups',icon:'♡'},finance:{label:'Giving & expenses',icon:'◈'}};
@@ -15,7 +15,7 @@ function fromDb(r){return {id:r.id,ministry:r.ministry,title:r.title,date:r.reco
 async function loadShared(){const {data,error}=await sb.from('ministry_records').select('*').order('created_at',{ascending:true});if(error)throw error;state={records:{outreach:[],people:[],supplies:[],prayer:[],finance:[]}};for(const row of data||[])if(state.records[row.record_type])state.records[row.record_type].push(fromDb(row));save();render()}
 function setSync(t){const el=$('#syncStatus');if(el)el.textContent=t}
 async function requireApproved(user){const {data,error}=await sb.from('ministry_profiles').select('display_name,role,approved,active').eq('user_id',user.id).maybeSingle();if(error||!data||!data.approved||!data.active)return false;currentProfile=data;$('#authGate').classList.add('hidden');$('#accountBtn').textContent=(data.display_name||user.email||'?').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();setSync('Shared workspace · synced');await loadShared();return true}
-async function bootAuth(){const {data}=await sb.auth.getSession();if(data.session){currentUser=data.session.user;if(!await requireApproved(currentUser)){await sb.auth.signOut();currentUser=null;$('#authMessage').textContent='This account is not yet approved for the ministry workspace.'}}}
+async function bootAuth(){const {data,error}=await sb.auth.getSession();if(error){$('#authError').textContent='Sign-in callback error: '+error.message;return}if(data.session){currentUser=data.session.user;if(!await requireApproved(currentUser)){currentUser=null;$('#authMessage').textContent='Google sign-in worked. Your account is waiting for ministry approval.';$('#authError').textContent='Your Google account is signed in, but it has not been approved for this workspace yet.'}}}
 
 function records(type){return state.records[type].filter(r=>scope==='all'||r.ministry===scope)}
 function all(type){return type?records(type):Object.keys(fields).flatMap(k=>records(k).map(r=>({...r,_type:k})))}
